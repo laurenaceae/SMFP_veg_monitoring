@@ -1,0 +1,30 @@
+---
+title: "Data cleaning"
+author: "Lauren Harris"
+date: "7/1/2025"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load packages
+```{r}
+library(tidyverse)
+library(here)
+```
+
+Import data
+```{r}
+spp_data <- read.csv(here("data", "input", "living_species_present_1.csv"))
+
+plot_data <- read.csv(here("data", "input", "Form_1_0.csv"))
+```
+
+Match ID to plot number
+```{r}
+colnames(spp_data)[1]
+spp_data <- left_join(x = spp_data, y = plot_data, by = join_by(ParentGlobalID, GlobalID))
+```
+
