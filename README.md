@@ -1,1 +1,2 @@
-# SMFP_veg_monitoring
+# San Marcos Foothills Preserve
+# Long-term vegetation monitoring
