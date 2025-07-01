@@ -17,14 +17,46 @@ library(here)
 
 Import data
 ```{r}
-spp_data <- read.csv(here("data", "input", "living_species_present_1.csv"))
+spp_data_0 <- read.csv(here("data", "input", "living_species_present_1.csv"))
 
-plot_data <- read.csv(here("data", "input", "Form_1_0.csv"))
+plot_data_0 <- read.csv(here("data", "input", "Form_1_0.csv"))
 ```
 
-Match ID to plot number
+Clean up columns labeling for datasets
 ```{r}
-colnames(spp_data)[1]
-spp_data <- left_join(x = spp_data, y = plot_data, by = join_by(ParentGlobalID, GlobalID))
+spp_data <- spp_data_0 %>% 
+  select(global_id_b = GlobalID, 
+         spp_name = Species.name, 
+         spp_name_other = Specify.other.,
+         relative_cover = X..cover.of,
+         global_id_a = ParentGlobalID, 
+         date = CreationDate)
+
+plot_data <- plot_data_0 %>% 
+  select(global_id_a = GlobalID, 
+         plot = Plot, 
+         relative_plant = X..Living.Plant.Cover, 
+         relative_thatch = X..thatch.cover, 
+         relative_bare = X..Bare.Ground, 
+         percent_native = X..Living.natives, 
+         percent_nonnative = X..Living.non.natives, 
+         thatch_depth_in = Thatch.depth..inches.,
+         burrow_count = Number.of.animal.burrows,
+         lat, 
+         lon, 
+         date = Date.and.Time)
+```
+
+Add in plot labels using global IDs
+
+The global ID in the plot data matches the parent global ID in the spp data
+```{r}
+# reference list for plot names to global IDs
+plot_name_list <- plot_data %>% 
+  select(global_id_a, plot) %>% 
+  distinct()
+
+# join the ref and the spp list to put plot names to species
+spp_data_join <- left_join(x = spp_data, y = plot_name_list, by = "global_id_a")
 ```
 
