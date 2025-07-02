@@ -13,6 +13,7 @@ Load packages
 ```{r}
 library(tidyverse)
 library(here)
+library(lubridate)
 ```
 
 Import data
@@ -24,15 +25,16 @@ plot_data_0 <- read.csv(here("data", "input", "Form_1_0.csv"))
 
 Clean up columns labeling for datasets
 ```{r}
-spp_data <- spp_data_0 %>% 
+spp_data <- spp_data_0 %>% # reduce and rename columns 
   select(global_id_b = GlobalID, 
          spp_name = Species.name, 
          spp_name_other = Specify.other.,
          relative_cover = X..cover.of,
          global_id_a = ParentGlobalID, 
-         date = CreationDate)
+         date = CreationDate) %>% 
+  mutate(date = mdy_hms(date)) # convert date to date class
 
-plot_data <- plot_data_0 %>% 
+plot_data <- plot_data_0 %>% # reduce and rename columns
   select(global_id_a = GlobalID, 
          plot = Plot, 
          relative_plant = X..Living.Plant.Cover, 
@@ -44,7 +46,8 @@ plot_data <- plot_data_0 %>%
          burrow_count = Number.of.animal.burrows,
          lat, 
          lon, 
-         date = Date.and.Time)
+         date = Date.and.Time) %>% 
+  mutate(date = mdy_hms(date)) # convert date to date class
 ```
 
 Add in plot labels using global IDs
@@ -57,6 +60,31 @@ plot_name_list <- plot_data %>%
   distinct()
 
 # join the ref and the spp list to put plot names to species
-spp_data_join <- left_join(x = spp_data, y = plot_name_list, by = "global_id_a")
+spp_data <- left_join(x = spp_data, y = plot_name_list, by = "global_id_a")
 ```
 
+Basic summary statistics
+```{r}
+plot_richness <- spp_data %>% 
+  group_by(month(date), year(date), plot) %>% 
+  summarize(spp_richness = n()) # still want to rename date columns
+
+# plot broken
+
+plot_richness %>%
+  tail(10) %>%
+  ggplot(aes(x=year, y=value)) +
+    geom_line() +
+    geom_point()
+```
+
+To do list: 
+- create csv of plots and whether they are control or experimental
+- put "other" species in main species column
+- create a csv with plant nativity
+- explore plant family/higher taxonomy effects
+
+
+Plots to create:
+- biodiversity
+- richness
